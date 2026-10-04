@@ -83,8 +83,8 @@ footer img{width:80px;border-radius:50%;margin-bottom:10px}footer h3{color:var(-
 .sheet.on{transform:none}.sheet h3{color:var(--maroon);margin-bottom:12px}@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .sheet h3{color:var(--gold2)}}
 .li{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line);font-size:14px}.li small{color:var(--mute);display:block}
 .li button{border:0;background:none;color:#b3261e;cursor:pointer;font-size:12px}
-.sheet input,.sheet textarea{width:100%;margin-top:10px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:14px Poppins}
-.tot{display:flex;justify-content:space-between;font:700 18px Cinzel;margin:14px 0}.sheet .btn{width:100%;justify-content:center}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sheet label{display:block;font-size:12px;color:var(--mute);margin-top:12px;font-weight:500}.sheet label+input,.sheet label+select{margin-top:4px}.sheet input,.sheet textarea,.sheet select{width:100%;margin-top:10px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:14px Poppins}
+.bk div{display:flex;justify-content:space-between;font-size:14px;padding:3px 0}.bk .tot{border-top:1px dashed var(--line);margin-top:6px;padding-top:10px}.err{border-color:#b3261e!important;outline:2px solid #b3261e55}.sheet input[readonly]{opacity:.75}.tot{display:flex;justify-content:space-between;font:700 18px Cinzel;margin:14px 0}.sheet .btn{width:100%;justify-content:center}
 .rv{opacity:0;transform:translateY(34px);transition:.8s}.rv.in{opacity:1;transform:none}
 .toast{position:fixed;top:80px;left:50%;transform:translate(-50%,-200%);background:var(--maroon);color:var(--gold2);padding:10px 20px;border-radius:30px;z-index:90;transition:.4s;font-size:14px;border:1px solid var(--gold)}.toast.on{transform:translate(-50%,0)}
 @media(max-width:600px){nav a.l{display:none}section{padding:60px 5%}}
@@ -125,8 +125,13 @@ footer img{width:80px;border-radius:50%;margin-bottom:10px}footer h3{color:var(-
 <div class="bar" id="bar"><span><b id="bc">0 items</b> · <b id="bt">₹0</b></span><span class="btn wa">View Order ›</span></div>
 <a class="fab" id="fab" href="#" data-wa="hi" aria-label="WhatsApp">💬</a>
 <div class="ov" id="ov"></div>
-<div class="sheet" id="sheet"><h3>Your Order</h3><div id="li"></div><div class="tot"><span>Total</span><span id="tt">₹0</span></div>
-<input id="nm" placeholder="Your name"><textarea id="ad" rows="2" placeholder="Delivery address / area & preferred time"></textarea>
+<div class="sheet" id="sheet"><h3>Your Order</h3><div id="li"></div><div id="bk" class="bk"></div>
+<div class="two"><div><label>First Name *</label><input id="fn" placeholder="First name" autocomplete="given-name" required></div><div><label>Last Name *</label><input id="ln" placeholder="Last name" autocomplete="family-name" required></div></div>
+<label>Phone Number *</label><input id="ph" type="tel" inputmode="tel" placeholder="10-digit mobile number" autocomplete="tel" maxlength="14" required>
+<label>Delivery Address *</label><textarea id="ad" rows="2" placeholder="House no., building, area, landmark" required></textarea>
+<div class="two"><div><label>Order Delivery Date *</label><input type="date" id="dt" required></div><div><label>Order Delivery Time *</label><select id="tm" required><option value="">Select time</option></select></div></div>
+<label>Order Placed (automatic)</label><input id="op" readonly>
+<label>Special instructions (optional)</label><input id="nt" placeholder="e.g. less spicy, extra raita">
 <div style="height:14px"></div><a class="btn wa" id="send" href="#">Send Order on WhatsApp</a></div>
 <div class="toast" id="toast"></div>
 
@@ -140,7 +145,7 @@ const MENU=[
 {id:5,c:"Royal Tawa Pulav",n:"Veg Tawa Pulav",i:"Fresh Vegetables • Basmati Rice • Signature Tawa Masala",d:"Fragrant rice tossed on the hot tawa with colourful vegetables and rich, buttery masala for that irresistible street-style flavour.",p:650},
 {id:6,c:"Royal Tawa Pulav",n:"Paneer Tawa Pulav",i:"Paneer • Fresh Vegetables • Basmati Rice • Signature Tawa Masala",d:"Soft paneer and fresh vegetables tossed with aromatic rice and our signature tawa masala—rich, smoky and wonderfully satisfying.",p:800}];
 const cats=["All",...new Set(MENU.map(m=>m.c))];let cat="All",cart={},q={};
-const rs=n=>"₹"+n.toLocaleString("en-IN"),kg=x=>x+" kg";
+const rs=n=>"₹"+n.toLocaleString("en-IN",{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2}),kg=x=>x+" kg";
 const link=t=>`https://wa.me/${NUM}?text=${encodeURIComponent(t)}`;
 const HI="Hello Taste of Paradise! 👑 I'd like to know more and place an order.";
 function wire(){document.querySelectorAll("[data-wa]").forEach(a=>a.href=link(HI))}
@@ -156,11 +161,17 @@ function load(){const g=$("#grid");g.innerHTML='<div class="sk"></div>'.repeat(3
 function tabs(){$("#tabs").innerHTML=cats.map(c=>`<button class="tab ${c==cat?'on':''}" data-c="${c}">${c}</button>`).join("")}
 function sum(){let n=0,t=0;for(const id in cart){n++;t+=cart[id]*MENU.find(m=>m.id==id).p}return{n,t}}
 function upd(){const{n,t}=sum();$("#bc").textContent=n+(n==1?" item":" items");$("#bt").textContent=rs(t);$("#bar").classList.toggle("show",n>0);$("#fab").classList.toggle("hide",n>0)}
-function sheet(){const{t}=sum();$("#tt").textContent=rs(t);
+const bill=t=>{const s=Math.round(t*9)/100;return{s,v:Math.round((t-2*s)*100)/100}};
+const phone=()=>{let d=$("#ph").value.replace(/\D/g,"");if(d.length==12&&d.startsWith("91"))d=d.slice(2);if(d.length==11&&d[0]=="0")d=d.slice(1);return d};
+const now=()=>new Date().toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"});
+function sheet(){const{t}=sum();const b=bill(t);$("#bk").innerHTML=`<div><span>Order Value</span><span>${rs(b.v)}</span></div><div><span>SGST (9%)</span><span>${rs(b.s)}</span></div><div><span>CGST (9%)</span><span>${rs(b.s)}</span></div><div class="tot"><span>Total Bill</span><span>${rs(t)}</span></div>`;$("#op").value=now();
  $("#li").innerHTML=Object.keys(cart).map(id=>{const m=MENU.find(x=>x.id==id);return`<div class="li"><div><b>${m.n}</b><small>${kg(cart[id])} × ${rs(m.p)}</small></div><div style="text-align:right">${rs(cart[id]*m.p)}<br><button data-r="${id}">Remove</button></div></div>`}).join("")||"<p style='color:var(--mute)'>Your order is empty.</p>";
  const lines=Object.keys(cart).map((id,i)=>{const m=MENU.find(x=>x.id==id);return`${i+1}. ${m.n} – ${kg(cart[id])} – ${rs(cart[id]*m.p)}`});
- const msg=`Hello Taste of Paradise! 👑\nI'd like to place an order:\n\n${lines.join("\n")}\n\nTotal: ${rs(t)}\n\nName: ${$("#nm").value||"-"}\nDelivery address/time: ${$("#ad").value||"-"}\n\nPlease confirm availability. Thank you!`;
+ const msg=`Hello Taste of Paradise! 👑\nI'd like to place an order:\n\n${lines.join("\n")}\n\nOrder Value: ${rs(b.v)}\nSGST (9%): ${rs(b.s)}\nCGST (9%): ${rs(b.s)}\nTotal Bill: ${rs(t)}\n\nName: ${($("#fn").value+" "+$("#ln").value).trim()||"-"}\nPhone: +91 ${phone()||"-"}\nDelivery Address: ${$("#ad").value||"-"}\nDelivery On: ${when()}\n${$("#nt").value?"Notes: "+$("#nt").value+"\n":""}\nOrder placed: ${now()}\n\nPlease confirm availability. Thank you!`;
  $("#send").href=lines.length?link(msg):"#"}
+function when(){const d=$("#dt").value,m=$("#tm").value;if(!d||!m)return"-";return new Date(d+"T00:00").toLocaleDateString("en-IN",{weekday:"short",day:"numeric",month:"short",year:"numeric"})+" at "+m}
+(function(){const s=$("#tm");for(let h=10;h<=21;h++)for(const m of[0,30]){const l=((h+11)%12+1)+":"+(m?"30":"00")+(h<12?" AM":" PM");s.add(new Option(l,l))}
+const n=new Date(),p=x=>String(x).padStart(2,"0"),today=n.getFullYear()+"-"+p(n.getMonth()+1)+"-"+p(n.getDate());$("#dt").min=today})();
 function open(o){$("#sheet").classList.toggle("on",o);$("#ov").classList.toggle("on",o);if(o)sheet()}
 document.addEventListener("click",e=>{const t=e.target.closest("button,.bar,.ov");if(!t)return;
  if(t.dataset.c){cat=t.dataset.c;tabs();load()}
@@ -168,8 +179,14 @@ document.addEventListener("click",e=>{const t=e.target.closest("button,.bar,.ov"
  else if(t.dataset.a){const id=t.dataset.a;cart[id]=q[id]||1;upd();toast("Added to your order ✓")}
  else if(t.dataset.r){delete cart[t.dataset.r];upd();sheet();if(!sum().n)open(false)}
  else if(t.id=="bar")open(true);else if(t.id=="ov")open(false)});
-$("#send").addEventListener("click",e=>{if(!sum().n){e.preventDefault();toast("Add an item first")}});
-["#nm","#ad"].forEach(s=>$(s).addEventListener("input",sheet));
+$("#send").addEventListener("click",e=>{sheet();
+ if(!sum().n){e.preventDefault();return toast("Add an item first")}
+ document.querySelectorAll(".err").forEach(x=>x.classList.remove("err"));
+ for(const[s,n]of[["#fn","first name"],["#ln","last name"],["#ph","a valid 10-digit phone number"],["#ad","delivery address"],["#dt","delivery date"],["#tm","delivery time"]]){const el=$(s),bad=s=="#ph"?!/^[6-9]\d{9}$/.test(phone()):!el.value.trim();if(bad){e.preventDefault();el.classList.add("err");el.focus();return toast("Please enter "+n)}}
+ sheet()});
+setInterval(()=>{if($("#sheet").classList.contains("on"))$("#op").value=now()},1000);
+["#fn","#ln","#ph","#ad","#nt"].forEach(s=>$(s).addEventListener("input",e=>{e.target.classList.remove("err");sheet()}));
+["#dt","#tm"].forEach(s=>$(s).addEventListener("change",e=>{e.target.classList.remove("err");sheet()}));
 addEventListener("scroll",()=>$("#nav").classList.toggle("s",scrollY>40),{passive:true});
 // rising spice sparks
 $("#parts").innerHTML=Array.from({length:18},()=>`<i class="p" style="left:${Math.random()*100}%;--x:${(Math.random()-.5)*120}px;animation-duration:${6+Math.random()*8}s;animation-delay:${Math.random()*8}s;width:${4+Math.random()*6}px;height:${4+Math.random()*6}px"></i>`).join("");
