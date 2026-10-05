@@ -197,9 +197,39 @@ function sheet(){const{t}=sum();
  $("#cpb").textContent=promo?"Remove":"Apply";$("#cp").readOnly=!!promo;
  $("#bk").innerHTML=`<h4>Bill Details</h4><div><span>Item Total</span><span>${rs(t)}</span></div>`+(promo?`<div class="g"><span>Discount (${pc}%)</span><span>− ${rs(off)}</span></div>`:"")+`<div class="tot"><span>To Pay</span><span>${rs(due)}</span></div>`+(off?`<div class="sv">🎉 You're saving ${rs(off)} on this order</div>`:"");
  $("#li").innerHTML=Object.keys(cart).map(id=>{const m=MENU.find(x=>x.id==id);return`<div class="li"><div><b>${m.n}</b><small>${kg(cart[id])} × ${rs(m.p)}</small></div><div style="text-align:right">${rs(cart[id]*m.p)}<br><button data-r="${id}">Remove</button></div></div>`}).join("")||"<p style='color:var(--mute)'>Your order is empty.</p>";
- const lines=Object.keys(cart).map((id,i)=>{const m=MENU.find(x=>x.id==id);return`${i+1}\\uFE0F\\u20E3 *${m.n}*\\n      _${kg(cart[id])} × ${rs(m.p)}_ = *${rs(cart[id]*m.p)}*`});
- const D="━━━━━━━━━━━━━━━━",dd=$("#dt").value?new Date($("#dt").value+"T00:00").toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long",year:"numeric"}):"-",
- msg=["*👑 TASTE OF PARADISE*","_Authentic. Homemade. Pure Veg._",D,"*🧾 NEW ORDER*","","*🍛 ORDER DETAILS*",...lines,D,"*👤 CUSTOMER DETAILS*","Name: *"+$("#fn").value.trim()+"*","Contact: +91 "+phone(),"Address: "+$("#ad").value.trim(),"","*🗓 DELIVERY SCHEDULE*","Date: *"+dd+"*","Time: *"+($("#tm").value||"-")+"*",...($("#nt").value.trim()?["","📝 _Notes: "+$("#nt").value.trim()+"_"]:[]),D,"*💳 PAYMENT*","Payment: *Make payment at Taste of Paradise to confirm the order.*","Cash on delivery is not available.",D,"_Kindly confirm my order. Thank you!_ 🙏",D,...(promo?["Item Total: "+rs(t),"Discount ("+promo+" "+pc+"%): -"+rs(off)]:[]),"*💰 TOTAL PAYABLE: "+rs(due)+"*"].join("\\n");
+ const lines=Object.keys(cart).map((id,i)=>{const m=MENU.find(x=>x.id==id);return`${i+1}. *${m.n}*\n   ${kg(cart[id])} × ${rs(m.p)} = *${rs(cart[id]*m.p)}*`});
+ const D="━━━━━━━━━━━━━━━━━━━━━━━━",dd=$("#dt").value?new Date($("#dt").value+"T00:00").toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long",year:"numeric"}):"-",
+ msg=[
+  "*👑 TASTE OF PARADISE*",
+  "_Authentic. Homemade. Pure Veg._",
+  "",
+  "*🧾 NEW ORDER*",
+  "",
+  "*🍛 ORDER DETAILS*",
+  ...lines,
+  "",
+  D,
+  "*👤 CUSTOMER DETAILS*",
+  "Name: *"+$("#fn").value.trim()+"*",
+  "Contact: +91 "+phone(),
+  "Address: "+$("#ad").value.trim(),
+  "",
+  "*🗓 DELIVERY SCHEDULE*",
+  "Date: *"+dd+"*",
+  "Time: *"+($("#tm").value||"-")+"*",
+  ...($("#nt").value.trim()?["","📝 _Notes: "+$("#nt").value.trim()+"_"]:[]),
+  "",
+  D,
+  "*💳 PAYMENT*",
+  "Make payment at Taste of Paradise to confirm your order.",
+  "Cash on delivery is not available.",
+  "",
+  D,
+  "_Kindly confirm my order. Thank you!_ 🙏",
+  "",
+  ...(promo?["Item Total: "+rs(t),"Discount ("+promo+" "+pc+"%): -"+rs(off)]:[]),
+  "*💰 TOTAL PAYABLE: "+rs(due)+"*"
+ ].join("\n");
  $("#send").href=lines.length?link(msg):"#"}
 function when(){const d=$("#dt").value,m=$("#tm").value;if(!d||!m)return"-";return new Date(d+"T00:00").toLocaleDateString("en-IN",{weekday:"short",day:"numeric",month:"short",year:"numeric"})+" at "+m}
 // ---- delivery schedule: earliest = next day; ordered before 6 PM -> from 12 PM, at/after 6 PM -> from 6 PM (IST)
