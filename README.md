@@ -1,1 +1,1 @@
-Taste of Paradise
+Taste of PARADISE
