@@ -225,7 +225,7 @@ document.addEventListener("click",e=>{const t=e.target.closest("button,.bar,.ov"
 $("#send").addEventListener("click",e=>{schedule();sheet();
  if(!sum().n){e.preventDefault();return toast("Add an item first")}
  document.querySelectorAll(".err").forEach(x=>x.classList.remove("err"));
- for(const[s,n]of[["#fn","your full name"],["#ph","a valid 10-digit contact number"],["#ad","delivery address"],["#dt","delivery date"],["#tm","delivery time"]]){const el=$(s),bad=s=="#ph"?!/^[6-9]\\d{9}$/.test(phone()):!el.value.trim();if(bad){e.preventDefault();el.classList.add("err");el.focus();return toast("Please enter "+n)}}
+ for(const[s,n]of[["#fn","your full name"],["#ph","a valid 10-digit contact number"],["#ad","delivery address"],["#dt","delivery date"],["#tm","delivery time"]]){const el=$(s),bad=s=="#ph"?!/^[6-9]\d{9}$/.test(phone()):!el.value.trim();if(bad){e.preventDefault();el.classList.add("err");el.focus();return toast("Please enter "+n)}}
  sheet();saveDet();
  // WhatsApp opens in a new tab/app; this page goes back to a fresh home screen
  setTimeout(()=>{cart={};q={};promo=null;$("#cp").value="";cpMsg("");$("#nt").value="";$("#tm").value="";upd();sheet();open(false);
