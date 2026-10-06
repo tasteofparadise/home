@@ -64,7 +64,7 @@ section{padding:80px 6%;max-width:1100px;margin:auto}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .price{color:var(--gold2)}}
 .row{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
 .step{display:flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:30px;padding:3px}
-.step button{width:32px;height:32px;border-radius:50%;border:0;background:var(--maroon);color:var(--gold2);font:600 18px Poppins;cursor:pointer;transition:.2s}.step button:active{transform:scale(.85)}
+.step button{width:32px;height:32px;border-radius:50%;border:0;background:var(--maroon);color:var(--gold2);font:600 18px Poppins;cursor:pointer;transition:.2s}.step button:active{transform:scale(.85)}.li .step button{width:32px;height:32px;border-radius:50%;background:var(--maroon);color:var(--gold2);font:600 18px Poppins;padding:0}
 .step span{min-width:54px;text-align:center;font-weight:600;font-size:14px}
 .add{background:linear-gradient(135deg,var(--gold),#b8821f);color:var(--maroon2);padding:9px 18px;font-size:13px}.add:hover{transform:scale(1.06)}
 .sk{height:230px;border-radius:20px;background:linear-gradient(90deg,var(--line) 25%,var(--card) 50%,var(--line) 75%);background-size:200%;animation:sh 1.2s infinite}@keyframes sh{to{background-position:-200%}}
@@ -167,6 +167,8 @@ const MENU=[
 {id:5,c:"Royal Tawa Pulav",n:"Veg Tawa Pulav",i:"Fresh Vegetables • Basmati Rice • Signature Tawa Masala",d:"Fragrant rice tossed on the hot tawa with colourful vegetables and rich, buttery masala for that irresistible street-style flavour.",p:650},
 {id:6,c:"Royal Tawa Pulav",n:"Paneer Tawa Pulav",i:"Paneer • Fresh Vegetables • Basmati Rice • Signature Tawa Masala",d:"Soft paneer and fresh vegetables tossed with aromatic rice and our signature tawa masala—rich, smoky and wonderfully satisfying.",p:800}];
 const cats=["All",...new Set(MENU.map(m=>m.c))];let cat="All",cart={},q={};
+const STEPS=[0,.5,1,2,3,4,5];
+function setQ(id,v){q[id]=v;const e=$("#q"+id);if(e)e.textContent=kg(v);if(v>0)cart[id]=v;else delete cart[id];upd()}
 const rs=n=>"₹"+n.toLocaleString("en-IN",{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2}),kg=x=>x+" kg";
 const link=t=>`https://wa.me/${NUM}?text=${encodeURIComponent(t)}`;
 const HI="Hello Taste of Paradise! 👑 I'd like to know more and place an order.";
@@ -178,8 +180,8 @@ function load(){const g=$("#grid");g.innerHTML='<div class="sk"></div>'.repeat(3
  g.innerHTML=list.map((m,k)=>`<div class="card" style="animation-delay:${k*90}ms">${m.sig?'<div class="sig">SIGNATURE</div>':''}
  <h3><span class="veg"></span>${m.n}</h3><div class="ing">${m.i}</div><div class="d">${m.d}</div>
  <div class="row"><div class="price">${rs(m.p)}<small> /kg</small></div></div>
- <div class="row"><div class="step"><button data-m="${m.id}" data-d="-1">−</button><span id="q${m.id}">${kg(q[m.id]||1)}</span><button data-m="${m.id}" data-d="1">+</button></div>
- <button class="btn add" data-a="${m.id}">Add to Order</button></div></div>`).join("")})}
+ <div class="row"><div class="step"><button data-m="${m.id}" data-d="-1">−</button><span id="q${m.id}">${kg(q[m.id]||0)}</span><button data-m="${m.id}" data-d="1">+</button></div>
+ </div></div>`).join("")})}
 function tabs(){$("#tabs").innerHTML=cats.map(c=>`<button class="tab ${c==cat?'on':''}" data-c="${c}">${c}</button>`).join("")}
 function sum(){let n=0,t=0;for(const id in cart){n++;t+=cart[id]*MENU.find(m=>m.id==id).p}return{n,t}}
 function upd(){const{n,t}=sum();$("#bc").textContent=n+(n==1?" item":" items");$("#bt").textContent=rs(t);$("#bar").classList.toggle("show",n>0);$("#fab").classList.toggle("hide",n>0)}
@@ -196,7 +198,7 @@ function sheet(){const{t}=sum();
  const pc=promo?CODES[promo].p:0,off=promo?Math.round(t*pc)/100:0,due=Math.max(0,t-off);
  $("#cpb").textContent=promo?"Remove":"Apply";$("#cp").readOnly=!!promo;
  $("#bk").innerHTML=`<h4>Bill Details</h4><div><span>Item Total</span><span>${rs(t)}</span></div>`+(promo?`<div class="g"><span>Discount (${pc}%)</span><span>− ${rs(off)}</span></div>`:"")+`<div class="tot"><span>To Pay</span><span>${rs(due)}</span></div>`+(off?`<div class="sv">🎉 You're saving ${rs(off)} on this order</div>`:"");
- $("#li").innerHTML=Object.keys(cart).map(id=>{const m=MENU.find(x=>x.id==id);return`<div class="li"><div><b>${m.n}</b><small>${kg(cart[id])} × ${rs(m.p)}</small></div><div style="text-align:right">${rs(cart[id]*m.p)}<br><button data-r="${id}">Remove</button></div></div>`}).join("")||"<p style='color:var(--mute)'>Your order is empty.</p>";
+ $("#li").innerHTML=Object.keys(cart).map(id=>{const m=MENU.find(x=>x.id==id);return`<div class="li"><div><b>${m.n}</b><small>${kg(cart[id])} × ${rs(m.p)}</small><div class="step" style="margin-top:6px;width:max-content"><button data-m="${id}" data-d="-1">−</button><span>${kg(cart[id])}</span><button data-m="${id}" data-d="1">+</button></div></div><div style="text-align:right">${rs(cart[id]*m.p)}<br><button data-r="${id}">Remove</button></div></div>`}).join("")||"<p style='color:var(--mute)'>Your order is empty.</p>";
  const lines=Object.keys(cart).map((id,i)=>{const m=MENU.find(x=>x.id==id);return`${i+1}. *${m.n}*\n   ${kg(cart[id])} × ${rs(m.p)} = *${rs(cart[id]*m.p)}*`});
  const D="━━━━━━━━━━━━━━━━━━━━━━━━",dd=$("#dt").value?new Date($("#dt").value+"T00:00").toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long",year:"numeric"}):"-",
  msg=[
@@ -248,9 +250,8 @@ function loadDet(){try{const o=JSON.parse(localStorage.getItem(SK)||"null");if(o
 function open(o){$("#sheet").classList.toggle("on",o);$("#ov").classList.toggle("on",o);if(o){schedule();sheet()}}
 document.addEventListener("click",e=>{const t=e.target.closest("button,.bar,.ov");if(!t)return;
  if(t.dataset.c){cat=t.dataset.c;tabs();load()}
- else if(t.dataset.d){const id=t.dataset.m;q[id]=Math.max(.5,(q[id]||1)+.5*t.dataset.d);$("#q"+id).textContent=kg(q[id]);}
- else if(t.dataset.a){const id=t.dataset.a;cart[id]=q[id]||1;upd();toast("Added to your order ✓")}
- else if(t.dataset.r){delete cart[t.dataset.r];upd();sheet();if(!sum().n)open(false)}
+ else if(t.dataset.d){const id=t.dataset.m,i=STEPS.indexOf(q[id]||0),d=+t.dataset.d;if(d>0&&i==STEPS.length-1)toast("Maximum 5 kg per item");else setQ(id,STEPS[Math.max(0,Math.min(STEPS.length-1,i+d))]);if($("#sheet").classList.contains("on")){sheet();if(!sum().n)open(false)}}
+ else if(t.dataset.r){setQ(t.dataset.r,0);sheet();if(!sum().n)open(false)}
  else if(t.id=="bar")open(true);else if(t.id=="ov"||t.id=="xs")open(false)});
 $("#send").addEventListener("click",e=>{schedule();sheet();
  if(!sum().n){e.preventDefault();return toast("Add an item first")}
