@@ -1,1 +1,1 @@
-Taste of PARADISE
+Taste of PARADISE official website
