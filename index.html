@@ -69,6 +69,14 @@ section{padding:80px 6%;max-width:1100px;margin:auto}
 .hp{font:500 12.5px Poppins,sans-serif;color:var(--mute);margin-top:2px}
 .ct{font:700 18px Cinzel,serif;color:var(--maroon)}@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .ct{color:var(--gold2)}}
 .li .step{display:inline-flex;margin-top:6px}.li .step button{background:var(--maroon);color:var(--gold2);font-size:18px}.li .step span{min-width:60px}
+.hint{font-size:12px;color:var(--mute);margin-top:6px;line-height:1.5}
+.wk{font-weight:600;color:#b3261e;font-size:11px;margin-left:4px}
+.dc{display:flex;gap:8px;align-items:stretch;margin-top:4px}.sheet .dc input{margin:0;flex:1;text-transform:uppercase;letter-spacing:1.5px;font-weight:600}
+.dc button{border:0;border-radius:12px;padding:0 20px;background:var(--maroon);color:var(--gold2);font:600 13px Poppins,sans-serif;cursor:pointer;transition:.2s}.dc button:active{transform:scale(.95)}
+.dcm{font-size:12.5px;margin-top:6px;font-weight:500}.dcm.ok{color:#2e8b3e}.dcm.no{color:#b3261e}.dcm button{border:0;background:none;color:#b3261e;font:600 12px Poppins,sans-serif;cursor:pointer;margin-left:8px;text-decoration:underline}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .dcm.ok{color:#8fd99b}:root:not([data-theme="light"]) .dcm.no,:root:not([data-theme="light"]) .wk{color:#ff8a80}}
+.bk .dsc{color:#2e8b3e;font-weight:600}
+.pay{margin:4px 0 14px;padding:10px 12px;border-radius:12px;background:#d4a03a1f;border:1px dashed var(--gold);font-size:12.5px;line-height:1.5;color:var(--ink)}
 .add{background:linear-gradient(135deg,var(--gold),#b8821f);color:var(--maroon2);padding:9px 18px;font-size:13px}.add:hover{transform:scale(1.06)}
 .sk{height:230px;border-radius:20px;background:linear-gradient(90deg,var(--line) 25%,var(--card) 50%,var(--line) 75%);background-size:200%;animation:sh 1.2s infinite}@keyframes sh{to{background-position:-200%}}
 .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;counter-reset:s}
@@ -203,12 +211,17 @@ footer img{width:80px;border-radius:50%;margin-bottom:10px}footer h3{color:var(-
 <a class="fab" id="fab" href="#" data-wa="hi" aria-label="WhatsApp">💬</a>
 <div class="ov" id="ov"></div>
 <div class="sheet" id="sheet"><h3 style="font-weight:700">Your Order</h3><div id="li"></div>
-<div class="two"><div><label>First Name *</label><input id="fn" placeholder="First name" autocomplete="given-name" required></div><div><label>Last Name *</label><input id="ln" placeholder="Last name" autocomplete="family-name" required></div></div>
+<label>Your Name *</label><input id="fn" placeholder="Your name" autocomplete="name" required>
 <label>Contact Details *</label><input id="ph" type="tel" inputmode="tel" placeholder="10-digit mobile number" autocomplete="tel" maxlength="14" required>
 <label>Delivery Address *</label><textarea id="ad" rows="2" placeholder="House no., building, area, landmark" required></textarea>
-<div class="two dt"><div><label>Order Delivery Date *</label><input type="date" id="dt" required></div><div><label>Order Delivery Time *</label><select id="tm" required><option value="">Select time</option></select></div></div>
+<div class="two dt"><div><label>Delivery Date * <span class="wk">Sat &amp; Sun only</span></label><select id="dt" required><option value="">Select date</option></select></div><div><label>Delivery Time *</label><select id="tm" required><option value="">Select time</option></select></div></div>
+<p class="hint">Delivery on Saturday &amp; Sunday, 12 PM – 8 PM. Same-day orders need 6 hours’ notice.</p>
 <label>Special instructions (optional)</label><input id="nt" placeholder="e.g. less spicy, extra raita">
-<div id="bk" class="bk" style="margin-top:16px"></div><a class="btn wa" id="send" href="#">Send Order on WhatsApp</a></div>
+<label>Discount Code (optional)</label>
+<div class="dc"><input id="dc" placeholder="Enter code" autocomplete="off" autocapitalize="characters" spellcheck="false"><button type="button" id="dca">Apply</button></div>
+<div class="dcm" id="dcm" role="status"></div>
+<div id="bk" class="bk" style="margin-top:16px"></div>
+<p class="pay">💳 <b>Cash on Delivery is not available.</b> Please pay in advance to confirm your order.</p><a class="btn wa" id="send" href="#">Send Order on WhatsApp</a></div>
 <div class="pv" id="pv" role="dialog" aria-modal="true" aria-labelledby="pvt">
 <div class="pc"><div class="pm">
  <button class="px" id="px" aria-label="Close offer">✕</button>
@@ -274,23 +287,54 @@ function load(){const g=$("#grid");g.innerHTML='<div class="sk"></div>'.repeat(3
  <div class="row"><div class="step"><button data-m="${m.id}" data-d="-1" aria-label="Decrease quantity">−</button><span id="q${m.id}">${kg(q[m.id]||0)}</span><button data-m="${m.id}" data-d="1" aria-label="Increase quantity">+</button></div>
  <div class="ct" id="ct${m.id}">${q[m.id]?rs(price(m,q[m.id])):""}</div></div></div>`).join("")})}
 function tabs(){$("#tabs").innerHTML=cats.map(c=>`<button class="tab ${c==cat?'on':''}" data-c="${c}">${c}</button>`).join("")}
-function sum(){let n=0,t=0;for(const id in cart){n++;t+=price(MENU.find(m=>m.id==id),cart[id])}return{n,t}}
+const CODES={TOP10:10}; /* discount codes: CODE: percent off the total bill */
+let disc={code:"",pct:0};
+function sum(){let n=0,sub=0;for(const id in cart){n++;sub+=price(MENU.find(m=>m.id==id),cart[id])}const off=disc.pct?Math.round(sub*disc.pct/100):0;return{n,sub,off,t:sub-off}}
 function setQ(id,k){q[id]=k;if(k>0)cart[id]=k;else delete cart[id];
  const e=$("#q"+id);if(e){const m=MENU.find(x=>x.id==id);e.textContent=kg(k);$("#sv"+id).textContent=svt(k);$("#ct"+id).textContent=k?rs(price(m,k)):""}upd()}
 function step(id,d){const cur=q[id]||0,i=Math.min(SZ.length-1,Math.max(0,SZ.indexOf(cur)+d));if(SZ[i]==cur)return;setQ(id,SZ[i]);
  if(!cur)toast("Added to your order ✓");else if(!SZ[i])toast("Removed from your order")}
 function upd(){const{n,t}=sum();$("#bc").textContent=n+(n==1?" item":" items");$("#bt").textContent=rs(t);$("#bar").classList.toggle("show",n>0);$("#fab").classList.toggle("hide",n>0)}
 const phone=()=>{let d=$("#ph").value.replace(/\D/g,"");if(d.length==12&&d.startsWith("91"))d=d.slice(2);if(d.length==11&&d[0]=="0")d=d.slice(1);return d};
-function sheet(){const{t}=sum();$("#bk").innerHTML=`<div class="tot"><span>Total Payable</span><span>${rs(t)}</span></div>`;
+function sheet(){const{sub,off,t}=sum();
+ $("#bk").innerHTML=(off?`<div><span>Subtotal</span><span>${rs(sub)}</span></div><div class="dsc"><span>Discount (${disc.code} · ${disc.pct}% off)</span><span>−${rs(off)}</span></div>`:"")+`<div class="tot"><span>Total Payable</span><span>${rs(t)}</span></div>`;
  $("#li").innerHTML=Object.keys(cart).map(id=>{const m=MENU.find(x=>x.id==id),k=cart[id];return`<div class="li"><div><b>${m.n}</b><small>${serves(k)}</small><div class="step"><button data-s="${id}" data-sd="-1" aria-label="Decrease quantity">−</button><span>${kg(k)}</span><button data-s="${id}" data-sd="1" aria-label="Increase quantity">+</button></div></div><div style="text-align:right">${rs(price(m,k))}<br><button data-r="${id}">Remove</button></div></div>`}).join("")||"<p style='color:var(--mute)'>Your order is empty.</p>";
- const lines=Object.keys(cart).map((id,i)=>{const m=MENU.find(x=>x.id==id);return`${i+1}\uFE0F\u20E3 *${m.n}*\n      _${kg(cart[id])} (${serves(cart[id])})_ = *${rs(price(m,cart[id]))}*`});
- const D="━━━━━━━━━━━━━━━━",dd=$("#dt").value?new Date($("#dt").value+"T00:00").toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long",year:"numeric"}):"-",
- msg=["*👑 TASTE OF PARADISE*","_Authentic. Homemade. Pure Veg._",D,"*🧾 NEW ORDER*","","*🍛 ORDER DETAILS*",...lines,D,"*👤 CUSTOMER DETAILS*","Name: *"+($("#fn").value+" "+$("#ln").value).trim()+"*","Contact: +91 "+phone(),"Address: "+$("#ad").value.trim(),"","*🗓 DELIVERY SCHEDULE*","Date: *"+dd+"*","Time: *"+($("#tm").value||"-")+"*",...($("#nt").value.trim()?["","📝 _Notes: "+$("#nt").value.trim()+"_"]:[]),D,"_Kindly confirm my order. Thank you!_ 🙏",D,"*💰 TOTAL PAYABLE: "+rs(t)+"*"].join("\n");
+ const sv=k=>k>=3?"Family Pack":"Serves "+(k>=2.5?"5-6":k>=2?"4-6":k>=1.5?"3-4":k>=1?"2-3":"1-2");
+ const lines=Object.keys(cart).map((id,i)=>{const m=MENU.find(x=>x.id==id);return`${i+1}. *${m.n}*\n    ${kg(cart[id])} (${sv(cart[id])}) - *${rs(price(m,cart[id]))}*`});
+ const D="------------------------------",dv=$("#dt").value,dd=dv?new Date(dv+"T00:00").toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long",year:"numeric"}):"-",
+ bill=off?["Subtotal: "+rs(sub),"Discount ("+disc.code+", "+disc.pct+"% off): -"+rs(off),"*Total Payable: "+rs(t)+"*"]:["*Total Payable: "+rs(t)+"*"],
+ msg=["*TASTE OF PARADISE* \u{1F451}","_Authentic. Homemade. Pure Veg._",D,"*NEW ORDER*","","*ORDER DETAILS* \u{1F35B}",...lines,D,"*BILL SUMMARY* \u{1F4B0}",...bill,D,"*CUSTOMER DETAILS* \u{1F464}","Name: *"+$("#fn").value.trim()+"*","Contact: +91 "+phone(),"Address: "+$("#ad").value.trim(),"","*DELIVERY SCHEDULE* \u{1F4C5}","Date: *"+dd+"*","Time: *"+($("#tm").value||"-")+"*",...($("#nt").value.trim()?["","Notes: _"+$("#nt").value.trim()+"_"]:[]),D,"*PAYMENT* \u{1F4B3}","Cash on Delivery is not available.","Kindly pay in advance to confirm your order. Your order will be confirmed once the payment is received.",D,"_Thank you for choosing Taste of Paradise!_ \u{1F64F}"].join("\n");
  $("#send").href=lines.length?link(msg):"#"}
 function when(){const d=$("#dt").value,m=$("#tm").value;if(!d||!m)return"-";return new Date(d+"T00:00").toLocaleDateString("en-IN",{weekday:"short",day:"numeric",month:"short",year:"numeric"})+" at "+m}
-(function(){const s=$("#tm");for(let h=10;h<=21;h++)for(const m of[0,30]){const l=((h+11)%12+1)+":"+(m?"30":"00")+(h<12?" AM":" PM");s.add(new Option(l,l))}
-const n=new Date(),p=x=>String(x).padStart(2,"0"),today=n.getFullYear()+"-"+p(n.getMonth()+1)+"-"+p(n.getDate());$("#dt").min=today})();
-function open(o){$("#sheet").classList.toggle("on",o);$("#ov").classList.toggle("on",o);if(o)sheet()}
+/* Delivery: Saturday & Sunday only, 12 PM – 8 PM.
+   Same-day (weekend) orders need 6 hours' notice · Friday after 6 PM → Saturday from 3 PM · otherwise from 12 PM */
+const ymd=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const lbl=m=>{const h=Math.floor(m/60),mm=m%60;return((h+11)%12+1)+":"+(mm?"30":"00")+(h<12?" AM":" PM")};
+function minTime(d,n){const nowM=n.getHours()*60+n.getMinutes();
+ if(ymd(d)==ymd(n)){const m=Math.max(720,Math.ceil((nowM+360)/30)*30);return m>1200?null:m}
+ if(n.getDay()==5&&nowM>1080&&d.getDay()==6&&ymd(d)==ymd(new Date(n.getFullYear(),n.getMonth(),n.getDate()+1)))return 900;
+ return 720}
+function fillTimes(){const s=$("#tm"),keep=s.value,dv=$("#dt").value,from=dv?(minTime(new Date(dv+"T00:00"),new Date())||720):720;
+ s.length=1;for(let m=from;m<=1200;m+=30)s.add(new Option(lbl(m),lbl(m)));
+ if(keep&&[...s.options].some(o=>o.value==keep))s.value=keep}
+function buildDates(){const n=new Date(),s=$("#dt"),sel=s.value;s.length=1;let c=0;
+ for(let i=0;i<35&&c<8;i++){const d=new Date(n.getFullYear(),n.getMonth(),n.getDate()+i);
+  if((d.getDay()!=6&&d.getDay()!=0)||minTime(d,n)===null)continue;
+  s.add(new Option(d.toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"short"})+(i?"":" (Today)"),ymd(d)));c++}
+ if(sel&&[...s.options].some(o=>o.value==sel))s.value=sel;fillTimes()}
+buildDates();
+$("#dt").addEventListener("change",fillTimes);
+/* discount code */
+function dcMsg(t,c){const e=$("#dcm");e.className="dcm "+(c||"");e.innerHTML=t}
+function applyCode(){const c=$("#dc").value.trim().toUpperCase();if(!c){dcMsg("Please enter a discount code.","no");return}
+ if(CODES[c]){disc={code:c,pct:CODES[c]};$("#dc").value=c;dcMsg("✓ "+c+" applied — "+disc.pct+"% off your total bill <button type=\"button\" id=\"dcr\">Remove</button>","ok")}
+ else{disc={code:"",pct:0};dcMsg("✗ Invalid discount code.","no")}
+ upd();sheet()}
+$("#dca").addEventListener("click",applyCode);
+$("#dc").addEventListener("keydown",e=>{if(e.key=="Enter"){e.preventDefault();applyCode()}});
+$("#dcm").addEventListener("click",e=>{if(e.target.id=="dcr"){disc={code:"",pct:0};$("#dc").value="";dcMsg("");upd();sheet()}});
+
+function open(o){$("#sheet").classList.toggle("on",o);$("#ov").classList.toggle("on",o);if(o){buildDates();sheet()}}
 document.addEventListener("click",e=>{const t=e.target.closest("button,.bar,.ov");if(!t)return;
  if(t.dataset.c){cat=t.dataset.c;tabs();load()}
  else if(t.dataset.d){step(t.dataset.m,+t.dataset.d)}
@@ -300,9 +344,9 @@ document.addEventListener("click",e=>{const t=e.target.closest("button,.bar,.ov"
 $("#send").addEventListener("click",e=>{sheet();
  if(!sum().n){e.preventDefault();return toast("Add an item first")}
  document.querySelectorAll(".err").forEach(x=>x.classList.remove("err"));
- for(const[s,n]of[["#fn","first name"],["#ln","last name"],["#ph","a valid 10-digit contact number"],["#ad","delivery address"],["#dt","delivery date"],["#tm","delivery time"]]){const el=$(s),bad=s=="#ph"?!/^[6-9]\d{9}$/.test(phone()):!el.value.trim();if(bad){e.preventDefault();el.classList.add("err");el.focus();return toast("Please enter "+n)}}
+ for(const[s,n]of[["#fn","your name"],["#ph","a valid 10-digit contact number"],["#ad","delivery address"],["#dt","delivery date"],["#tm","delivery time"]]){const el=$(s),bad=s=="#ph"?!/^[6-9]\d{9}$/.test(phone()):!el.value.trim();if(bad){e.preventDefault();el.classList.add("err");el.focus();return toast("Please enter "+n)}}
  sheet()});
-["#fn","#ln","#ph","#ad","#nt"].forEach(s=>$(s).addEventListener("input",e=>{e.target.classList.remove("err");sheet()}));
+["#fn","#ph","#ad","#nt"].forEach(s=>$(s).addEventListener("input",e=>{e.target.classList.remove("err");sheet()}));
 ["#dt","#tm"].forEach(s=>$(s).addEventListener("change",e=>{e.target.classList.remove("err");sheet()}));
 addEventListener("scroll",()=>$("#nav").classList.toggle("s",scrollY>40),{passive:true});
 // rising spice sparks
