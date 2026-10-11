@@ -160,14 +160,15 @@ footer a.fl{color:var(--gold2)}
 <script>
 const NUM="919075513261",$=s=>document.querySelector(s);
 const MENU=[
-{id:1,c:"Royal Veg Biryani",n:"Shahi Paneer Biryani",sig:1,i:"Paneer • Cashews • Saffron Milk • Royal Spices",d:"Fragrant basmati rice layered with succulent paneer, rich cashews and the delicate aroma of saffron milk. A truly royal vegetarian indulgence.",p:1000},
-{id:2,c:"Royal Veg Biryani",n:"Royal Paneer Biryani",i:"Paneer • Garden Fresh Vegetables • Aromatic Spices",d:"Flavourful basmati rice cooked with tender paneer, colourful vegetables and our signature blend of aromatic biryani spices.",p:900},
-{id:3,c:"Royal Veg Biryani",n:"Royal Soyabean Biryani",i:"Soyabean • Fragrant Basmati Rice • Handpicked Spices",d:"Protein-rich soyabean combined with long-grain basmati rice and aromatic spices for a hearty, flavour-packed biryani.",p:800},
-{id:4,c:"Royal Veg Biryani",n:"Classic Veg Biryani",i:"Fresh Vegetables • Basmati Rice • Aromatic Spices",d:"A generous medley of fresh vegetables, perfectly cooked basmati rice and traditional biryani spices—fragrant, colourful and satisfying.",p:700},
-{id:5,c:"Royal Tawa Pulav",n:"Veg Tawa Pulav",i:"Fresh Vegetables • Basmati Rice • Signature Tawa Masala",d:"Fragrant rice tossed on the hot tawa with colourful vegetables and rich, buttery masala for that irresistible street-style flavour.",p:650},
-{id:6,c:"Royal Tawa Pulav",n:"Paneer Tawa Pulav",i:"Paneer • Fresh Vegetables • Basmati Rice • Signature Tawa Masala",d:"Soft paneer and fresh vegetables tossed with aromatic rice and our signature tawa masala—rich, smoky and wonderfully satisfying.",p:800}];
+{id:1,c:"Royal Veg Biryani",n:"Shahi Paneer Biryani",sig:1,i:"Paneer • Cashews • Saffron Milk • Royal Spices",d:"Fragrant basmati rice layered with succulent paneer, rich cashews and the delicate aroma of saffron milk. A truly royal vegetarian indulgence.",p:699,h:399,b:599},
+{id:2,c:"Royal Veg Biryani",n:"Royal Paneer Biryani",i:"Paneer • Garden Fresh Vegetables • Aromatic Spices",d:"Flavourful basmati rice cooked with tender paneer, colourful vegetables and our signature blend of aromatic biryani spices.",p:649,h:349},
+{id:3,c:"Royal Veg Biryani",n:"Royal Soyabean Biryani",i:"Soyabean • Fragrant Basmati Rice • Handpicked Spices",d:"Protein-rich soyabean combined with long-grain basmati rice and aromatic spices for a hearty, flavour-packed biryani.",p:549,h:299},
+{id:4,c:"Royal Veg Biryani",n:"Classic Veg Biryani",i:"Fresh Vegetables • Basmati Rice • Aromatic Spices",d:"A generous medley of fresh vegetables, perfectly cooked basmati rice and traditional biryani spices—fragrant, colourful and satisfying.",p:549,h:299},
+{id:5,c:"Royal Tawa Pulav",n:"Veg Tawa Pulav",i:"Fresh Vegetables • Basmati Rice • Signature Tawa Masala",d:"Fragrant rice tossed on the hot tawa with colourful vegetables and rich, buttery masala for that irresistible street-style flavour.",p:499,h:259},
+{id:6,c:"Royal Tawa Pulav",n:"Paneer Tawa Pulav",i:"Paneer • Fresh Vegetables • Basmati Rice • Signature Tawa Masala",d:"Soft paneer and fresh vegetables tossed with aromatic rice and our signature tawa masala—rich, smoky and wonderfully satisfying.",p:549,h:299}];
 const cats=["All",...new Set(MENU.map(m=>m.c))];let cat="All",cart={},q={};
 const rs=n=>"₹"+n.toLocaleString("en-IN",{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2}),kg=x=>x+" kg";
+const price=(m,k)=>k==.5?m.h:k>=2&&m.b?m.b*k:m.p*k,rate=(m,k)=>k==.5?m.h:k>=2&&m.b?m.b:m.p,rl=(m,k)=>k==.5?rs(m.h)+" / \u00bd kg":rs(rate(m,k))+" /kg";
 const link=t=>`https://wa.me/${NUM}?text=${encodeURIComponent(t)}`;
 const HI="Hello Taste of Paradise! 👑 I'd like to know more and place an order.";
 function wire(){document.querySelectorAll("[data-wa]").forEach(a=>a.href=link(HI))}
@@ -177,12 +178,12 @@ function load(){const g=$("#grid");g.innerHTML='<div class="sk"></div>'.repeat(3
  return new Promise(r=>setTimeout(r,550)).then(()=>MENU.filter(m=>cat=="All"||m.c==cat)).then(list=>{
  g.innerHTML=list.map((m,k)=>`<div class="card" style="animation-delay:${k*90}ms">${m.sig?'<div class="sig">SIGNATURE</div>':''}
  <h3><span class="veg"></span>${m.n}</h3><div class="ing">${m.i}</div><div class="d">${m.d}</div>
- <div class="row"><div class="price">${rs(m.p)}<small> /kg</small></div></div>
+ <div class="row"><div class="price">${rs(m.p)}<small> /kg \u00b7 \u00bd kg ${rs(m.h)}</small>${m.b?`<small style="display:block;color:var(--green)">2 kg &amp; above: ${rs(m.b)} /kg</small>`:''}</div></div>
  <div class="row"><div class="step"><button data-m="${m.id}" data-d="-1">−</button><span id="q${m.id}">${kg(q[m.id]||0)}</span><button data-m="${m.id}" data-d="1">+</button></div>
  <button class="btn add" data-a="${m.id}">Add to Order</button></div></div>`).join("")})}
 function tabs(){$("#tabs").innerHTML=cats.map(c=>`<button class="tab ${c==cat?'on':''}" data-c="${c}">${c}</button>`).join("")}
 const QS=[0,.5,1,2,3,4,5];
-function sum(){let n=0,t=0;for(const id in cart){n++;t+=cart[id]*MENU.find(m=>m.id==id).p}return{n,t}}
+function sum(){let n=0,t=0;for(const id in cart){n++;{const m=MENU.find(x=>x.id==id);t+=price(m,cart[id])}}return{n,t}}
 function upd(){const{n,t}=sum();$("#bc").textContent=n+(n==1?" item":" items");$("#bt").textContent=rs(t);$("#bar").classList.toggle("show",n>0);$("#fab").classList.toggle("hide",n>0)}
 const phone=()=>$("#ph").value.replace(/\D/g,"").slice(0,10);
 const CODES={TOPO20:{m:9,mn:"October",p:20},TOPN20:{m:10,mn:"November",p:20},TOPD20:{m:11,mn:"December",p:20}};let promo=null;
@@ -197,8 +198,8 @@ function sheet(){const{t}=sum();
  const pc=promo?CODES[promo].p:0,off=promo?Math.round(t*pc)/100:0,due=Math.max(0,t-off);
  $("#cpb").textContent=promo?"Remove":"Apply";$("#cp").readOnly=!!promo;
  $("#bk").innerHTML=`<h4>Bill Details</h4><div><span>Item Total</span><span>${rs(t)}</span></div>`+(promo?`<div class="g"><span>Discount (${pc}%)</span><span>− ${rs(off)}</span></div>`:"")+`<div class="tot"><span>To Pay</span><span>${rs(due)}</span></div>`+(off?`<div class="sv">🎉 You're saving ${rs(off)} on this order</div>`:"");
- $("#li").innerHTML=Object.keys(cart).map(id=>{const m=MENU.find(x=>x.id==id);return`<div class="li"><div><b>${m.n}</b><small>${rs(m.p)} /kg</small></div><div style="text-align:right">${rs(cart[id]*m.p)}<div class="step" style="margin-top:6px"><button data-m="${id}" data-d="-1">−</button><span>${kg(cart[id])}</span><button data-m="${id}" data-d="1">+</button></div></div></div>`}).join("")||"<p style='color:var(--mute)'>Your order is empty.</p>";
- const lines=Object.keys(cart).map((id,i)=>{const m=MENU.find(x=>x.id==id);return`${i+1}. *${m.n}*\n   ${kg(cart[id])} × ${rs(m.p)} = *${rs(cart[id]*m.p)}*`});
+ $("#li").innerHTML=Object.keys(cart).map(id=>{const m=MENU.find(x=>x.id==id);return`<div class="li"><div><b>${m.n}</b><small>${rl(m,cart[id])}</small></div><div style="text-align:right">${rs(price(m,cart[id]))}<div class="step" style="margin-top:6px"><button data-m="${id}" data-d="-1">−</button><span>${kg(cart[id])}</span><button data-m="${id}" data-d="1">+</button></div></div></div>`}).join("")||"<p style='color:var(--mute)'>Your order is empty.</p>";
+ const lines=Object.keys(cart).map((id,i)=>{const m=MENU.find(x=>x.id==id);return`${i+1}. *${m.n}*\n   ${kg(cart[id])} @ ${rl(m,cart[id])} = *${rs(price(m,cart[id]))}*`});
  const D="━━━━━━━━━━━━━━━━━━━━━━━━",dd=$("#dt").value?new Date($("#dt").value+"T00:00").toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long",year:"numeric"}):"-",
  msg=[
   "*👑 TASTE OF PARADISE*",
